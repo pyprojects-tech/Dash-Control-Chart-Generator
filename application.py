@@ -22,17 +22,14 @@ import plotly.io as pio
 import plotly.express as px
 pio.templates.default = "plotly_white"
 
-
 app = dash.Dash()
 application = app.server
-
 
 app.layout = html.Div([
 
                 html.Div([
-
                     html.H1(children='Control Chart Generator',style={'textAlign': 'center'}),
-
+                    
                     html.Div(children='Data Charting Tool for CSV Files'
                              ', Data aggregation (H-Hour, D-Day, W-Week, M-Month, Q-Quarter, Y-Year), Example 4H = Every 4 Hours',
                              style={'textAlign': 'center','vertical-align': 'top'}),
@@ -90,8 +87,7 @@ app.layout = html.Div([
                         style={ 'display': 'inline-block','padding-left':'20px','padding-top':'20px','vertical-align': 'top'}
                         ),
                     
-                        html.Div([                
-                            
+                        html.Div([                                          
                             html.Label('Y-Axis Lower Limit',style={'display':'table-cell'}),
                             dcc.Input(id='y_low',
                                       value=0,type='number',
@@ -109,8 +105,7 @@ app.layout = html.Div([
                                 
                         ),
                     
-                        html.Div([
-                      
+                        html.Div([                      
                             html.Label('Input Data Aggregation',style={'display':'table-cell'}),
                             dcc.Input(id='agg',
                                 value='all',type='text',
@@ -133,20 +128,13 @@ app.layout = html.Div([
                             
                     ],
                     style={'display':'inline-block','padding-left': '20px','padding-top':'20px','vertical-align': 'top'}    
-                    ),
+                    ),                                      
                             
-                        html.Div([
-                    
-                            
-                        html.Div([
-                           dcc.Graph(id='graph-data')
-                            ]),
-                            ]
-                        
-                        )
-                          
-                ]),
+                    html.Div([
+                       dcc.Graph(id='graph-data')
+                        ]),
 
+                ]),
 
                 html.Br(),
                 html.Div(dash_table.DataTable(id='table'))
@@ -154,7 +142,6 @@ app.layout = html.Div([
             ],
             style={'font-family':'Trebuchet MS, sans-serif','border':'3px outset','padding':'10px','background-color':'#f5f5f5'}
             )
-
 
 # Functions
 
@@ -178,7 +165,6 @@ def parse_contents(contents, filename):
 
     return df
 
-
 # callback table creation
 @app.callback(Output('table', 'data'),
               [Input('upload-data', 'contents'),
@@ -194,7 +180,6 @@ def update_output(contents, filename):
             return [{}]
     else:
         return [{}]
-
 
 #callback update options of filter dropdown
 @app.callback(Output('y-data', 'options'),
@@ -220,8 +205,6 @@ def update_filter_column_options(tablerows):
      Input(component_id='ytype', component_property='value')
     ]
 )
-
-
 
 def create_timeseries(y_data,us_lim,ls_lim,y_lower,y_upper,start,end,agg,contents,filename,ytype):
     
