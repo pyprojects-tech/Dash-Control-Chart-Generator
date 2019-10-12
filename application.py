@@ -29,114 +29,131 @@ application = app.server
 
 app.layout = html.Div([
 
-    html.Div([
+                html.Div([
 
-    html.H1(children='Control Chart Generator',style={'textAlign': 'center'}),
+                    html.H1(children='Control Chart Generator',style={'textAlign': 'center'}),
 
-    html.Div(children='Data Charting Tool for CSV Files'
-             ', Data aggregation (H-Hour, D-Day, W-Week, M-Month, Q-Quarter, Y-Year), Example 4H = Every 4 Hours',
-             style={'textAlign': 'center','vertical-align': 'top'}),
-        
-    html.H3("Upload Files"),
-    dcc.Upload(
-        id='upload-data',
-        children=html.Div([
-            'Drag and Drop or ',
-            html.A('Select Files')
-        ]),
-        style={
-            'width': '100%',
-            'height': '60px',
-            'lineHeight': '60px',
-            'borderWidth': '1px',
-            'borderStyle': 'dashed',
-            'borderRadius': '5px',
-            'textAlign': 'center',
-            'margin': '10px'
-        },
-        multiple=False),
-    html.Br(),
-    html.Button(
-        id='propagate-button',
-        n_clicks=0,
-        children='Import Data to Graph'
-    ),
-    
-    html.Div([
-        
-        html.Div([
-            html.Label('Select Data to Graph'),
-            dcc.Dropdown(id='y-data',
-                        multi = False,
-                        placeholder='Filter Column')
+                    html.Div(children='Data Charting Tool for CSV Files'
+                             ', Data aggregation (H-Hour, D-Day, W-Week, M-Month, Q-Quarter, Y-Year), Example 4H = Every 4 Hours',
+                             style={'textAlign': 'center','vertical-align': 'top'}),
+                        
+                    html.H3("Upload Files"),
+                    dcc.Upload(
+                        id='upload-data',
+                        children=html.Div([
+                            'Drag and Drop or ',
+                            html.A('Select Files')
+                        ]),
+                        style={
+                            'width': '95%',
+                            'height': '60px',
+                            'lineHeight': '60px',
+                            'borderWidth': '1px',
+                            'borderStyle': 'dashed',
+                            'borderRadius': '5px',
+                            'textAlign': 'center',
+                            'margin': '10px',
+
+                        },
+                        multiple=False),
+                
+                    html.Div([
+                        
+                        html.Div([
+                            html.Label('Select Data to Graph'),
+                            dcc.Dropdown(id='y-data',
+                                        multi = False,
+                                        placeholder='Filter Column'),
+                            
+                            html.Label('Select Date Range for Graph',style={'display':'table-cell'}),
+                            dcc.DatePickerRange(
+                                id='date',
+                                style={'font-family':'Trebuchet MS, sans-serif','font-size':'small'}
+                            ),
+                            
+                        ],
+                        style={'width':'25%','display': 'inline-block','padding-top':'20px','vertical-align': 'top'}
+                        ),
+                        
+                        html.Div([
+                            html.Label('Lower Specification Limit',style={'display':'table-cell'}),
+                            dcc.Input(id='lsl',
+                                      value=0,type='number',
+                                      placeholder='low spec limit',style={'display':'table-cell'}),
+                            
+                            html.Label('Upper Specification Limit',style={'display':'table-cell'}),
+                            dcc.Input(id='usl',
+                                      value=0,type='number',
+                                      placeholder='upper spec limit',style={'display':'table-cell'})
+
+                        ],
+                        style={ 'display': 'inline-block','padding-left':'20px','padding-top':'20px','vertical-align': 'top'}
+                        ),
+                    
+                        html.Div([                
+                            
+                            html.Label('Y-Axis Lower Limit',style={'display':'table-cell'}),
+                            dcc.Input(id='y_low',
+                                      value=0,type='number',
+                                      placeholder='lower y limit',style={'display':'table-cell'}),
+                            
+                            html.Label('Y-Axis Upper Limit',style={'display':'table-cell'}),
+                            dcc.Input(id='y_high',
+                                      value=0,type='number',
+                                      placeholder='upper y limit',
+                                      style={'display':'table-cell'},
+                                      )
+
+                        ],
+                        style={'display':'inline-block','padding-left': '20px','padding-top':'20px','vertical-align': 'top'}
+                                
+                        ),
+                    
+                        html.Div([
+                      
+                            html.Label('Input Data Aggregation',style={'display':'table-cell'}),
+                            dcc.Input(id='agg',
+                                value='all',type='text',
+                                placeholder='input aggregration, type all for all',style={'display':'table-cell'}),
+                        ],
+                        style={'display':'inline-block','padding-left': '20px','padding-top':'20px','vertical-align': 'top'}
+                        ),
+                        
+                        html.Div([
+                            html.Label('Select Y-Axis Type'),
+                            dcc.RadioItems(id='ytype',
+                                options=[
+                                {'label': 'Linear', 'value': 'linear'},
+                                {'label': 'Logarithmic', 'value': 'log'}
+                                ]                                
+                                ),
+                        ],
+                        style={'display':'inline-block','padding-left': '20px','padding-top':'20px','vertical-align': 'top'}
+                        ), 
+                            
+                    ],
+                    style={'display':'inline-block','padding-left': '20px','padding-top':'20px','vertical-align': 'top'}    
+                    ),
+                            
+                        html.Div([
+                    
+                            
+                        html.Div([
+                           dcc.Graph(id='graph-data')
+                            ]),
+                            ]
+                        
+                        )
+                          
+                ]),
+
+
+                html.Br(),
+                html.Div(dash_table.DataTable(id='table'))
+
             ],
-            style={'width':'25%','display': 'inline-block','padding-top':'20px','vertical-align': 'top'}
-        ),
-        
-        html.Div([
-            html.Label('Lower Specification Limit',style=dict(display='table-cell')),
-            dcc.Input(id='lsl',
-                      value=0,type='number',
-                      placeholder='low spec limit',style=dict(display='table-cell')),
-            
-            html.Label('Upper Specification Limit',style=dict(display='table-cell')),
-            dcc.Input(id='usl',
-                      value=0,type='number',
-                      placeholder='upper spec limit',style=dict(display='table-cell'))
-
-            ],
-            style={ 'display': 'inline-block','padding-left':'30px','padding-top':'20px','vertical-align': 'top'}
-        ),
-    
-        html.Div([                
-            
-            html.Label('Y-Axis Lower Limit',style=dict(display='table-cell')),
-            dcc.Input(id='y_low',
-                      value=0,type='number',
-                      placeholder='lower y limit',style=dict(display='table-cell')),
-            
-            html.Label('Y-Axis Upper Limit',style=dict(display='table-cell')),
-            dcc.Input(id='y_high',
-                      value=0,type='number',
-                      placeholder='upper y limit',style=dict(display='table-cell'))
-
-            ],
-            style={'display':'inline-block','padding-left': '30px','padding-top':'20px','vertical-align': 'top'}    
-        ),
-    
-        html.Div([
-            html.Label('Select Date Range for Graph',style=dict(display='table-cell')),
-            dcc.DatePickerRange(
-                id='date'
-            ),
-            
-            html.Label('Input Data Aggregation',style=dict(display='table-cell')),
-            dcc.Input(id='agg',
-                value='all',type='text',
-                placeholder='input aggregration, type all for all',style=dict(display='table-cell'))
-            
-        ],
-        style={'display':'inline-block','padding-left': '30px','padding-top':'20px','vertical-align': 'top'}    
-        ),
-        
-        html.Div([
-           dcc.Graph(id='graph-data')
-        ]),
-        ]
-        
-        )
-              
-        ]),
-
-
-    html.Br(),
-    html.H5("Updated Table"),
-    html.Div(dash_table.DataTable(id='table'))
-
-
-],
-style={'font-family':'Trebuchet MS, sans-serif','border':'3px outset','padding':'10px','background-color':'#f5f5f5'}
-)
+            style={'font-family':'Trebuchet MS, sans-serif','border':'3px outset','padding':'10px','background-color':'#f5f5f5'}
+            )
 
 
 # Functions
@@ -181,18 +198,11 @@ def update_output(contents, filename):
 
 #callback update options of filter dropdown
 @app.callback(Output('y-data', 'options'),
-              [Input('propagate-button', 'n_clicks'),
-               Input('table', 'data')])
+              [Input('table', 'data')])
 
-def update_filter_column_options(n_clicks_update, tablerows):
-    if n_clicks_update < 1:
-        print("df empty")
-        return []
-
-    else:
+def update_filter_column_options(tablerows):
+    
         dff = pd.DataFrame(tablerows) # <- problem! dff stays empty even though table was uploaded
-
-        print("updating... dff empty?:"), dff.empty #result is True, labels stay empty
 
         return [{'label': i, 'value': i} for i in sorted(list(dff))]
 
@@ -206,13 +216,14 @@ def update_filter_column_options(n_clicks_update, tablerows):
      Input(component_id='date',component_property='end_date'),
      Input(component_id='agg',component_property='value'),
      Input(component_id='upload-data', component_property='contents'),
-     Input(component_id='upload-data', component_property='filename')
+     Input(component_id='upload-data', component_property='filename'),
+     Input(component_id='ytype', component_property='value')
     ]
 )
 
 
 
-def create_timeseries(y_data,us_lim,ls_lim,y_lower,y_upper,start,end,agg,contents,filename):
+def create_timeseries(y_data,us_lim,ls_lim,y_lower,y_upper,start,end,agg,contents,filename,ytype):
     
     dff = parse_contents(contents, filename)
     dff.index = pd.to_datetime(dff.index)
@@ -294,7 +305,7 @@ def create_timeseries(y_data,us_lim,ls_lim,y_lower,y_upper,start,end,agg,content
                     'title': 'Date and Time','mirror':True,'ticks':'outside','showline':True
                 },
                 'yaxis':{
-                    'title': y_data, 'range':[y_lower,y_upper],'mirror':True,'ticks':'outside','showline':True
+                    'title': y_data, 'range':[y_lower,y_upper],'mirror':True,'ticks':'outside','showline':True,'type':ytype
                 }
             })
         }
