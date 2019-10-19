@@ -1,5 +1,6 @@
 import dash_html_components as html
 import dash_core_components as dcc
+import dash_bootstrap_components as dbc
 import dash
 
 import plotly
@@ -23,6 +24,7 @@ import plotly.express as px
 pio.templates.default = "plotly_white"
 
 app = dash.Dash()
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 application = app.server
 
 app.layout = html.Div([
@@ -128,14 +130,14 @@ app.layout = html.Div([
                             
                     ],
                     style={'display':'inline-block','padding-left': '20px','padding-top':'20px','vertical-align': 'top'}    
-                    ),                                      
+                    ),
                             
                     html.Div([
                        dcc.Graph(id='graph-data')
                         ]),
 
                 ]),
-
+                html.Div(id='df0', style={'display': 'none'}),
                 html.Br(),
                 html.Div(dash_table.DataTable(id='table'))
 
@@ -157,7 +159,8 @@ def parse_contents(contents, filename):
                 io.StringIO(decoded.decode('utf-8')),index_col=0)
         elif 'xls' in filename:
             # Assume that the user uploaded an excel file
-            df = pd.read_excel(io.BytesIO(decoded),index_col=0)
+            df = pd.read_excel(
+                io.BytesIO(decoded),index_col=0)
 
     except Exception as e:
         print(e)
@@ -165,8 +168,8 @@ def parse_contents(contents, filename):
 
     return df
 
-# callback table creation
-@app.callback(Output('table', 'data'),
+#callback table creation
+@app.callback(Output('df0', 'children'),
               [Input('upload-data', 'contents'),
                Input('upload-data', 'filename')
               ])
@@ -174,8 +177,9 @@ def parse_contents(contents, filename):
 def update_output(contents, filename):
     if contents is not None:
         df = parse_contents(contents, filename)
+        df.index = pd.to_datetime(df.index)
         if df is not None:
-            return df.to_dict('records')
+            return df.to_json(orient='split')
         else:
             return [{}]
     else:
@@ -183,13 +187,13 @@ def update_output(contents, filename):
 
 #callback update options of filter dropdown
 @app.callback(Output('y-data', 'options'),
-              [Input('table', 'data')])
+              [Input('df0', 'children')])
 
-def update_filter_column_options(tablerows):
+def update_filter_column_options(data):
     
-        dff = pd.DataFrame(tablerows) # <- problem! dff stays empty even though table was uploaded
+        df = pd.read_json(data,orient='split') # <- problem! dff stays empty even though table was uploaded
 
-        return [{'label': i, 'value': i} for i in sorted(list(dff))]
+        return [{'label': i, 'value': i} for i in sorted(list(df))]
 
 @app.callback(Output(component_id='graph-data',component_property='figure'),
     [Input(component_id='y-data',component_property='value'),
@@ -200,16 +204,14 @@ def update_filter_column_options(tablerows):
      Input(component_id='date',component_property='start_date'),
      Input(component_id='date',component_property='end_date'),
      Input(component_id='agg',component_property='value'),
-     Input(component_id='upload-data', component_property='contents'),
-     Input(component_id='upload-data', component_property='filename'),
+     Input(component_id='df0', component_property='children'),
      Input(component_id='ytype', component_property='value')
     ]
 )
 
-def create_timeseries(y_data,us_lim,ls_lim,y_lower,y_upper,start,end,agg,contents,filename,ytype):
+def create_timeseries(y_data,us_lim,ls_lim,y_lower,y_upper,start,end,agg,data,ytype):
     
-    dff = parse_contents(contents, filename)
-    dff.index = pd.to_datetime(dff.index)
+    dff = pd.read_json(data,orient='split')
     
     if agg != 'all':
         df = dff.loc[start:end].resample(agg).mean()
